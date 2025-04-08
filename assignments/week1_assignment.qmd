@@ -5,6 +5,7 @@ editor: visual
 ---
 
 ## Downloading BLAST Software
+Data and files are stored on JupyterHub and not pushed to GitHub repository to optimize storage
 
 Linux-x64: https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/
 
@@ -58,12 +59,56 @@ blastx \
 -max_target_seqs 1 \
 -outfmt 6
 ## ^^ this takes a long time to run 
+```
 
+```{bash}
 # print output
 head -2 ../../blastdb/output/Ab_4-uniprot_blastx.tab
 wc -l ../../blastdb/output/Ab_4-uniprot_blastx.tab
 ```
+## Grab accession numbers from uniprot and download
+```{bash}
+# download into output folder
+cd ../../blastdb/output
+curl -O -H "Accept: text/plain; format=tsv" "https://rest.uniprot.org/uniprotkb/stream?compressed=true&fields=accession%2Creviewed%2Cid%2Cprotein_name%2Cgene_names%2Corganism_name%2Clength&format=tsv&query=%28*%29+AND+%28reviewed%3Atrue%29"
+# rename annotation table
+mv stream uniprot_table_r2025_04.tab
+```
+# Clean up blast results
+```{bash}
+# make sure blast results are tab separated 
+tr '|' '\t' < ../../blastdb/output/Ab_4-uniprot_blastx.tab | head -2
+tr '|' '\t' < ../../blastdb/output/Ab_4-uniprot_blastx.tab \
+> ../../blastdb/output/Ab_4-uniprot_blastx_sep.tab
+```
+
+# Join blast and annotation table
+```{r}
+library(tidyverse)
+library("kableExtra")
+# read in blast table
+bltabl <- read.csv("../../blastdb/output/Ab_4-uniprot_blastx_sep.tab", sep = '\t', header = FALSE)
+# read in annotation table
+spgo <- read.csv("../../blastdb/output/uniprot_table_r2025_04.tab", sep = '\t', header = TRUE)
+# join tables 
+kbl(
+head(
+  left_join(bltabl, spgo,  by = c("V3" = "Entry")) %>%
+  select(V1, V3, V13, Protein.names, Organism, Gene.Ontology..biological.process., Gene.Ontology.IDs) %>% mutate(V1 = str_replace_all(V1, 
+            pattern = "solid0078_20110412_FRAG_BC_WHITE_WHITE_F3_QV_SE_trimmed", replacement = "Ab"))
+)
+) %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
+
+# save table as tsv 
+left_join(bltabl, spgo,  by = c("V3" = "Entry")) %>%
+  select(V1, V3, V13, Protein.names, Organism, Gene.Ontology..biological.process., Gene.Ontology.IDs) %>% mutate(V1 = str_replace_all(V1, 
+            pattern = "solid0078_20110412_FRAG_BC_WHITE_WHITE_F3_QV_SE_trimmed", replacement = "Ab")) %>%
+  write_delim("../../blastdb/output/blast_annot_go.tab", delim = '\t')
+
+```
 
 ```{bash}
-ls ../../blastdb
+ls ../../blastdb/output
 ```
+
