@@ -1,0 +1,69 @@
+---
+title: "blast"
+format: html
+editor: visual
+---
+
+## Downloading BLAST Software
+
+Linux-x64: https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/
+
+```{bash}
+#| echo: false
+# download blast into bioinfo folder (upstream from local repo)
+cd ../../bioinfo
+curl -O https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/LATEST/ncbi-blast-2.16.0+-x64-linux.tar.gz
+tar -xf ncbi-blast-2.16.0+-x64-linux.tar.gz
+```
+
+## Create BLAST Database
+```{bash}
+# download uniprot
+cd ../../blastdb
+curl -O https://ftp.uniprot.org/pub/databases/uniprot/current_release/knowledgebase/complete/uniprot_sprot.fasta.gz
+# change name and unzip
+mv uniprot_sprot.fasta.gz uniprot_sprot_r2025_04.fasta.gz
+gunzip -k uniprot_sprot_r2025_04.fasta.gz
+# show files
+ls
+```
+
+```{bash}
+# export the path
+export PATH="$PATH:~/bioinfo/ncbi-blast-2.16.0+/bin"
+# run makeblastdb
+makeblastdb -in ~/blastdb/uniprot_sprot_r2025_04.fasta -dbtype prot -out ~/blastdb/output/uniprot_sprot_r2025_04
+```
+## Get a query sequence
+```{bash}
+# download into blastdb
+curl https://eagle.fish.washington.edu/cnidarian/Ab_4denovo_CLC6_a.fa \
+-k \
+> ../../blastdb/Ab_4denovo_CLC6_a.fa
+# check number of sequences and print
+head ../../blastdb/Ab_4denovo_CLC6_a.fa
+echo "How many sequences are there?"
+grep -c ">" ../../blastdb/Ab_4denovo_CLC6_a.fa
+```
+## Run BLAST
+```{bash}
+# export path
+export PATH="$PATH:~/bioinfo/ncbi-blast-2.16.0+/bin"
+blastx \
+-query ../../blastdb/Ab_4denovo_CLC6_a.fa \
+-db ../../blastdb/output/uniprot_sprot_r2025_04 \
+-out ../../blastdb/output/Ab_4-uniprot_blastx.tab \
+-evalue 1E-20 \
+-num_threads 20 \
+-max_target_seqs 1 \
+-outfmt 6
+## ^^ this takes a long time to run 
+
+# print output
+head -2 ../../blastdb/output/Ab_4-uniprot_blastx.tab
+wc -l ../../blastdb/output/Ab_4-uniprot_blastx.tab
+```
+
+```{bash}
+ls ../../blastdb
+```

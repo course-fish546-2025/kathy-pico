@@ -1,3 +1,5 @@
 # Kathy's files for FISH 546
 
-Assignments/homework in `homework` directory
+Question sets in `homework` directory
+
+Assigments in `assignments` directory
