@@ -5,6 +5,7 @@ editor: visual
 ---
 
 ## Downloading Kallisto in JupyterHub
+
 ```{bash}
 cd ../../programs
 # download kallisto via wget
@@ -15,6 +16,7 @@ tar -xf kallisto_linux-v0.46.1.tar.gz
 ```
 
 ## Running Kallisto (on Raven) and Indexing
+
 ```{bash}
 mkdir data
 cd data
@@ -28,7 +30,9 @@ index -i \
 ```
 
 ## Downloading sequencing reads
+
 ```{bash}
+pwd
 cd ../data
 # recursively retrieve sequence reads
 wget --recursive --no-parent --no-directories \
@@ -36,9 +40,10 @@ wget --recursive --no-parent --no-directories \
 --accept '*.fastq.gz' \
 https://gannet.fish.washington.edu/seashell/bu-github/nb-2023/Cgigas/data/nopp/
 
-# create new directory for output
-mkdir ../output
-mkdir ../output/kallisto_01
+# create new directory for output in data folder
+mkdir output
+mkdir output/kallisto_01
+cd output
 # find all fastq.gz files, grab base filename from each file and remove suffix, and run quant
 find *fastq.gz | xargs basename -s _L001_R1_001.fastq.gz | xargs -I{} /home/shared/kallisto/kallisto quant -i cgigas_roslin_rna.index -o output/kallisto_01/{} -t 40 --single -l 100 -s 10 {}_L001_R1_001.fastq.gz
 # run abundance_estimates_to_matrix script (Trinity) to create gene expression matrix
@@ -74,19 +79,8 @@ perl /home/shared/trinityrnaseq-v2.12.0/util/abundance_estimates_to_matrix.pl \
 ```
 
 ## Running DESeq2
+
 ```{r}
-# first install DESeq2
-if (!require("BiocManager", quietly = TRUE))
-    install.packages("BiocManager")
-
-BiocManager::install("DESeq2")
-# load packages
-library(DESeq2)
-library(tidyverse)
-library(pheatmap)
-library(RColorBrewer)
-library(data.table)
-
 # first necessary install packages
 if (!require("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
@@ -105,4 +99,44 @@ rownames(countmatrix) <- countmatrix$X
 countmatrix <- countmatrix[,-1]
 # check the count matrix
 head(countmatrix)
+# round to whole numbers
+countmatrix <- round(countmatrix, 0)
+str(countmatrix)
+```
+
+## Get DEGs by treatment (dessication)
+
+```{r}
+# create df wide format
+deseq2.colData <- data.frame(condition=factor(c(rep("control", 12), rep("desicated", 12))), 
+                             type=factor(rep("single-read", 24)))
+rownames(deseq2.colData) <- colnames(data)
+# add in count matrix results
+deseq2.dds <- DESeqDataSetFromMatrix(countData = countmatrix,
+                                     colData = deseq2.colData, 
+                                     design = ~ condition)
+deseq2.dds <- DESeq(deseq2.dds)
+deseq2.res <- results(deseq2.dds)
+deseq2.res <- deseq2.res[order(rownames(deseq2.res)), ]
+# check results table
+head(deseq2.res)
+# Count number of hits with signifcant valeu (adjusted p-value less then 0.05)
+dim(deseq2.res[!is.na(deseq2.res$padj) & deseq2.res$padj <= 0.05, ])
+
+## plotting
+tmp <- deseq2.res
+# grab significant values
+tmp.sig <- deseq2.res[!is.na(deseq2.res$padj) & deseq2.res$padj <= 0.05, ]
+### this code chunk must be run together in order to not throw and error ###
+# set base for volcano plot
+plot(tmp$baseMean, tmp$log2FoldChange, pch=20, cex=0.45, ylim=c(-3, 3), log="x", col="darkgray",
+     main="DEG Dessication  (pval <= 0.05)",
+     xlab="mean of normalized counts",
+     ylab="Log2 Fold Change")
+# plotting sig
+points(tmp.sig$baseMean, tmp.sig$log2FoldChange, pch=20, cex=0.45, col="red")
+# 2 FC lines
+abline(h=c(-1,1), col="blue")
+############################################################
+write.table(tmp.sig, "../data/output/DEGlist.tab", row.names = T)
 ```
