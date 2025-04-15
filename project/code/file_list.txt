@@ -1,0 +1,6 @@
+/mnt/nfs/projects/armbrust-metat/gradients3/g3_station_ns_metat/qc_data/G3.DIEL.NS.S4C11.15m.0_2um.A.fw.fastq.gz
+/mnt/nfs/projects/armbrust-metat/gradients3/g3_station_ns_metat/qc_data/G3.DIEL.NS.S4C11.15m.0_2um.A.rv.fastq.gz
+/mnt/nfs/projects/armbrust-metat/gradients3/g3_station_ns_metat/qc_data/G3.DIEL.NS.S4C11.15m.0_2um.B.fw.fastq.gz
+/mnt/nfs/projects/armbrust-metat/gradients3/g3_station_ns_metat/qc_data/G3.DIEL.NS.S4C11.15m.0_2um.B.rv.fastq.gz
+/mnt/nfs/projects/armbrust-metat/gradients3/g3_station_ns_metat/qc_data/G3.DIEL.NS.S4C11.15m.0_2um.C.fw.fastq.gz
+/mnt/nfs/projects/armbrust-metat/gradients3/g3_station_ns_metat/qc_data/G3.DIEL.NS.S4C11.15m.0_2um.C.rv.fastq.gz

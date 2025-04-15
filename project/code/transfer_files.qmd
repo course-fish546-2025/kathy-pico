@@ -1,0 +1,21 @@
+---
+title: "transfer"
+format: html
+editor: visual
+---
+# Transfer files from armbrust lab server
+Previously, I set up an SSH key pair in order to log in to my server from this server. 
+These files have already been trimmed and Qc'd. 
+
+```{bash}
+## grab a subset of files from grazer (1 for now)
+# only want diel experiments and paired data
+
+# grab only a subset of files and save in txt file
+ssh klqi@grazer "ls /mnt/nfs/projects/armbrust-metat/gradients3/g3_station_ns_metat/qc_data/G3.DIEL*.fastq.gz | grep -v '.unpaired.fastq.gz'" | head -n 6 > file_list.txt
+
+# recursively grab files from grazer
+while read file; do
+    rsync -av klqi@grazer:"$file" /home/shared/16TB_HDD_01/fish546/kathy-pico/data/trimmed/
+done < file_list.txt
+```
