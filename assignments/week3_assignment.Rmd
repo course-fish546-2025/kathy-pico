@@ -1,0 +1,81 @@
+---
+title: "Week 3 Assignment"
+author: Kathy Qi
+date: "2025-04-18"
+output: 
+  html_document:
+      css: splendor.css
+      toc: true
+      toc_float: true
+      number_sections: true
+      code_folding: show
+---
+
+```{r setup, include=FALSE}
+# uses CSS file downloaded from https://github.com/nwstephens/rmdcss/tree/master
+knitr::opts_chunk$set(echo = TRUE, warning= FALSE, message = FALSE)
+```
+
+## Introduction
+
+This is a practice markdown file for my **project**. It will contain the following:
+
+1.  Code
+2.  Plots
+3.  Analysis
+4.  Interpretations
+
+## Load packages
+```{r}
+library("stringr")
+library("dplyr")
+library("maps")
+library("readr")
+library("ggplot2")
+```
+
+## Code to read in sample metadata
+```{r}
+## read in metadata and only grab data from diel study
+metadata <- read.csv('../project/metadata/sample_metadata.csv')
+diel <- metadata[str_detect(metadata$SampleID, "DIEL"), ]
+```
+Surface samples (15 m) are taken every ~3-4 hours across 3 days. 
+
+
+## Plot map
+```{r map}
+# Calculate average latitude and longitude
+avg_coords <- diel %>%
+  summarise(
+    avg_lat = mean(Latitude, na.rm = TRUE),
+    avg_lon = mean(Longitude, na.rm = TRUE)
+  )
+
+# Get world map data (for a simple ocean/land basemap)
+world_map <- map_data("world")
+
+# Set plot limits to focus on your study region
+lon_buffer <- 20
+lat_buffer <- 20
+lon_min <- min(diel$Longitude) - lon_buffer
+lon_max <- max(diel$Longitude) + lon_buffer
+lat_min <- min(diel$Latitude) - lat_buffer - 5
+lat_max <- max(diel$Latitude) + lat_buffer
+
+# Plot
+ggplot() +
+  geom_polygon(data = world_map, aes(x = long, y = lat, group = group),
+               fill = "grey90", color = "grey70", size = 0.3) +
+  coord_fixed(xlim = c(lon_min, lon_max), ylim = c(lat_min, lat_max)) +
+  geom_point(data = avg_coords, aes(x = avg_lon, y = avg_lat),
+             color = "red", size = 5, shape = 21, fill = "red", alpha = 0.8) +
+  labs(
+    title = "G3 Diel Study",
+    x = "Longitude",
+    y = "Latitude"
+  ) +
+  theme_minimal(base_size = 14)
+```
+
+Study site is located in the North Pacific Transition Zone.
