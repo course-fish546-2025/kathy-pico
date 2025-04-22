@@ -3,9 +3,10 @@ title: "transfer"
 format: html
 editor: visual
 ---
+
 # Transfer files from armbrust lab server
-Previously, I set up an SSH key pair in order to log in to my server from this server. 
-These files have already been trimmed and Qc'd. 
+
+Previously, I set up an SSH key pair in order to log in to my server from this server. These files have already been trimmed and Qc'd.
 
 ```{bash}
 ## grab a subset of files from grazer (1 for now)
@@ -18,4 +19,52 @@ ssh klqi@grazer "ls /mnt/nfs/projects/armbrust-metat/gradients3/g3_station_ns_me
 while read file; do
     rsync -av klqi@grazer:"$file" /home/shared/16TB_HDD_01/fish546/kathy-pico/data/trimmed/
 done < file_list.txt
+```
+
+# Align fastq files to reference genomes
+
+https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000015665.1/ Try one first, then use all \~600 from stephen's paper https://www.science.org/doi/10.1126/sciadv.adr4310, https://www.nature.com/articles/sdata2018154#Sec2
+
+```{bash}
+# grab reference genome from NCBI
+cd ~/github/project/alignment
+wget -L https://ftp.ncbi.nlm.nih.gov/genomes/all/GCF/000/015/665/GCF_000015665.1_ASM1566v1/GCF_000015665.1_ASM1566v1_genomic.fna.gz
+# change the name
+mv GCF_000015665.1_ASM1566v1_genomic.fna.gz mit_9515_reference.fna.gz
+# unzip
+gunzip mit_9515_reference.fna.gz
+```
+
+```{bash}
+## try one first (bowtie)
+# build bowtie index
+cd ../alignment
+# mkdir output
+cd output
+# bowtie-build mit_9515_reference.fna mit_9515
+
+# grab files from data folder
+datadir="/home/shared/16TB_HDD_01/fish546/kathy-pico/data/trimmed/"
+# create paths from first 2 lines of file
+read1=$datadir"G3.DIEL.NS.S4C11.15m.0_2um.A.fw.fastq.gz"
+read2=$datadir"G3.DIEL.NS.S4C11.15m.0_2um.A.rv.fastq.gz"
+# align with bowtie
+bowtie -q mit_9515 -1 "$read1" -2 "$read2" -S test_alignment.sam
+
+```
+
+Output with MIT 9515:
+
+```         
+# reads processed: 67980220
+# reads with at least one reported alignment: 9122 (0.01%)
+# reads that failed to align: 67971098 (99.99%)
+Reported 9122 paired-end alignments
+```
+
+Maybe that wasn't the correct reference genome, I should probably try a different ecotype
+
+# process .sam file
+
+```{bash}
 ```
