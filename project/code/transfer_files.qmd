@@ -41,7 +41,7 @@ gunzip mit_9515_reference.fna.gz
 cd ../alignment
 # mkdir output
 cd output
-# bowtie-build mit_9515_reference.fna mit_9515
+bowtie-build mit_9515_reference.fna mit_9515
 
 # grab files from data folder
 datadir="/home/shared/16TB_HDD_01/fish546/kathy-pico/data/trimmed/"
@@ -50,10 +50,9 @@ read1=$datadir"G3.DIEL.NS.S4C11.15m.0_2um.A.fw.fastq.gz"
 read2=$datadir"G3.DIEL.NS.S4C11.15m.0_2um.A.rv.fastq.gz"
 # align with bowtie
 bowtie -q mit_9515 -1 "$read1" -2 "$read2" -S test_alignment.sam
-
 ```
 
-Output with MIT 9515:
+Output with bowtie and MIT 9515:
 
 ```         
 # reads processed: 67980220
@@ -63,8 +62,37 @@ Reported 9122 paired-end alignments
 ```
 
 Maybe that wasn't the correct reference genome, I should probably try a different ecotype
+- Actually, Zinka said this was not bad since I just used 1 genome and got >9000 reads to align
 
 # process .sam file
-
 ```{bash}
+# visualize the aligments
+
 ```
+
+Maybe it would be better to include the annotations with bowtie
+
+# Now try with bowtie2
+```{bash}
+# export path to bowtie2 to run scripts
+bowtie2dir="/home/shared/bowtie2-2.4.4-linux-x86_64/"
+cd $bowtie2dir
+# build index with bowtie2
+mkdir ~/github/project/alignment/output2
+# store files in output2 folder
+./bowtie2-build ~/github/project/alignment/mit_9515_reference.fna \
+~/github/project/alignment/output2/mit_9515_reference2
+
+# grab files from data folder
+datadir="/home/shared/16TB_HDD_01/fish546/kathy-pico/data/trimmed/"
+# create paths from first 2 lines of file
+read1=$datadir"G3.DIEL.NS.S4C11.15m.0_2um.A.fw.fastq.gz"
+read2=$datadir"G3.DIEL.NS.S4C11.15m.0_2um.A.rv.fastq.gz"
+# align with bowtie2
+./bowtie2 -x ~/github/project/alignment/output2/mit_9515_reference2 \
+-1 $read1 \
+-2 $read2 \
+-S ~/github/project/alignment/output2/test_alignment2.sam
+```
+
+
