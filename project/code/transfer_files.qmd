@@ -4,9 +4,17 @@ format: html
 editor: visual
 ---
 
-# Transfer files from armbrust lab server
+# Code for running subset of files on Raven
+Preliminary work on for running full alignment on 1 _Prochlorococcus_ genome with 1 G3 diel sample
 
+## Transfer files from armbrust lab server
 Previously, I set up an SSH key pair in order to log in to my server from this server. These files have already been trimmed and Qc'd.
+
+
+```{bash}
+pwd
+```
+
 
 ```{bash}
 ## grab a subset of files from grazer (1 for now)
