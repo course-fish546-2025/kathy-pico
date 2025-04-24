@@ -19,3 +19,8 @@ Inline code is directly embedded into the markdown file and is usually used for 
 
 The `color` argument needs to go outside of the `aes` function to plot all the points as blue. Currently, the function is attempting to find a variable in the `mpg` dataset called "blue" to map to. However, there are no variable called blue, so `ggplot` just plots all the points labelled as "blue" in the default color ("red"). 
 
+
+4. Of the many things we have done in class the past two weeks, what is one aspect you would like to revisit and spend more time on?
+
+I would like to focus more on how the different tools work and the pros/cons of each. I think there is a lot of differnet software out there, but I'm not sure which ones are best suited for particular data types or research questions. 
+
