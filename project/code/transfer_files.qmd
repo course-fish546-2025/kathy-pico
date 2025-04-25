@@ -10,9 +10,8 @@ Preliminary work on for running full alignment on 1 _Prochlorococcus_ genome wit
 ## Transfer files from armbrust lab server
 Previously, I set up an SSH key pair in order to log in to my server from this server. These files have already been trimmed and Qc'd.
 
-
 ```{bash}
-pwd
+ls
 ```
 
 
