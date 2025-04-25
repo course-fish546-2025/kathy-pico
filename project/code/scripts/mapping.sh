@@ -20,8 +20,8 @@ fi
 
 READSDIR="/mnt/nfs/projects/armbrust-metat/gradients3/g3_station_ns_metat/qc_data/"
 FWREADS="G3.DIEL*.fw.fastq.gz"
-
 ALLFW="$(ls $READSDIR$FWREADS)"
+
 for read1 in $ALLFW; do
     # Derive reverse read name
     path=$(dirname "$read1")
@@ -37,14 +37,14 @@ for read1 in $ALLFW; do
     OUTPUT_DIR="${MAP_DIR}/quant_${sample_name}"
     
     # check if it doesn't already exist, make mapping!
-    if [ ! -d "$INDEX_DIR" ];
+    if [ ! -f "$OUTPUT_DIR" ]; then
+        echo  "Mapping $sample_name"
+        # make output directory
+        mkdir -p "$OUTPUT_DIR"
+        # run salmon 
+        salmon quant -i "$INDEX_DIR" -l A \
+        -1 "$read1" -2 "$read2" \
+        -p $THREADS --validateMappings \
+        -o "$OUTPUT_DIR"
+    fi
 done
-
-    
-#     # Run quantification
-#     echo "Processing sample: $sample_name"
-#     salmon quant -i "$INDEX_DIR" -l A \
-#         -1 "$read1" -2 "$read2" \
-#         -p $THREADS --validateMappings \
-#         -o "$OUTPUT_DIR"
-# done
