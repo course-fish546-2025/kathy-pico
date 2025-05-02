@@ -1,0 +1,125 @@
+---
+title: "week5_assignment"
+format: html
+editor: visual
+---
+
+## Alignment Data
+
+Download alignment data
+
+```{r, engine='bash'}
+mkdir -p ~/data/alignment
+cd ~/data/alignment
+curl -O https://gannet.fish.washington.edu/seashell/bu-mox/scrubbed/120321-cvBS/19F_R1_val_1_bismark_bt2_pe.deduplicated.sorted.bam
+curl -O https://gannet.fish.washington.edu/seashell/bu-mox/scrubbed/120321-cvBS/19F_R1_val_1_bismark_bt2_pe.deduplicated.sorted.bam.bai
+```
+
+```{r, engine='bash'}
+cd ~/data/alignment
+curl -O https://gannet.fish.washington.edu/seashell/bu-mox/data/Cvirg-genome/GCF_002022765.2_C_virginica-3.0_genomic.fa
+curl -O https://gannet.fish.washington.edu/seashell/bu-mox/data/Cvirg-genome/GCF_002022765.2_C_virginica-3.0_genomic.fa.fai
+```
+
+## tview visualization
+
+```         
+/home/shared/samtools-1.12/samtools tview \
+~/data/alignment/19F_R1_val_1_bismark_bt2_pe.deduplicated.sorted.bam \
+~/data/alignment/GCF_002022765.2_C_virginica-3.0_genomic.fa
+```
+
+![tview](tview.png)
+
+## IGV
+
+Download data
+```{r, engine='bash'}
+cd ~/data/alignment
+curl -O https://owl.fish.washington.edu/nightingales/C_gigas/F143n08_R2_001.fastq.gz
+curl -O https://owl.fish.washington.edu/nightingales/C_gigas/F143n08_R1_001.fastq.gz
+```
+
+```{r, engine='bash'}
+cd ~/data/alignment
+curl -O https://gannet.fish.washington.edu/panopea/Cg-roslin/cgigas_uk_roslin_v1_genomic-mito.fa
+curl -O https://gannet.fish.washington.edu/panopea/Cg-roslin/cgigas_uk_roslin_v1_genomic-mito.fa.fai
+curl -O https://gannet.fish.washington.edu/panopea/Cg-roslin/GCF_902806645.1_cgigas_uk_roslin_v1_genomic-mito.gtf
+```
+
+Run alignment (HiSat2)
+```{r, engine='bash'}
+# build index
+mkdir ~/data/alignment/output
+/home/shared/hisat2-2.2.1/hisat2-build \
+-f ~/data/alignment/cgigas_uk_roslin_v1_genomic-mito.fa \
+~/data/alignment/output/cgigas_uk_roslin_v1_genomic-mito.index
+```
+
+```{r, engine='bash'}
+# align to index
+/home/shared/hisat2-2.2.1/hisat2 \
+-x ~/data/alignment/output/cgigas_uk_roslin_v1_genomic-mito.index \
+-p 4 \
+-1 ~/data/alignment/F143n08_R1_001.fastq.gz \
+-2 ~/data/alignment/F143n08_R2_001.fastq.gz \
+-S ~/data/alignment/output/F143_cgigas.sam
+```
+
+Check alignment output
+```{r, engine='bash'}
+tail -1 ~/data/alignment/output/F143_cgigas.sam
+```
+
+```{r, engine='bash'}
+# Convert SAM to BAM, using 4 additional threads
+/home/shared/samtools-1.12/samtools view -@ 4 -bS \
+~/data/alignment/output/F143_cgigas.sam > ~/data/alignment/output/F143_cgigas.bam
+```
+
+```{r, engine='bash'}
+# Sort the BAM file, using 4 additional threads
+/home/shared/samtools-1.12/samtools sort -@ 4 \
+~/data/alignment/output/F143_cgigas.bam -o ~/data/alignment/output/F143_cgigas_sorted.bam
+
+# Index the sorted BAM file (multi-threading is not applicable to this operation)
+/home/shared/samtools-1.12/samtools index \
+~/data/alignment/output/F143_cgigas_sorted.bam
+```
+
+
+## Run `mpileup`
+
+```{r, engine='bash'}
+/home/shared/bcftools-1.14/bcftools mpileup --threads 4 --no-BAQ \
+--fasta-ref ~/data/alignment/cgigas_uk_roslin_v1_genomic-mito.fa \
+~/data/alignment/output/F143_cgigas_sorted.bam > ~/data/alignment/output/F143_mpileup_output.txt
+```
+
+Check mpileup output
+```{r, engine='bash'}
+tail ~/data/alignment/output/F143_mpileup_output.txt
+```
+
+Create VCF file 
+```{r, engine='bash'}
+cat ~/data/alignment/output/F143_mpileup_output.txt \
+| /home/shared/bcftools-1.14/bcftools call -mv -Oz \
+> ~/data/alignment/output/F143_mpile.vcf.gz
+```
+
+
+```{r, engine='bash'}
+zgrep "^##" -v ../output/F143_mpile.vcf.gz | \
+awk 'BEGIN{OFS="\t"} {split($8, a, ";"); print $1,$2,$4,$5,$6,a[1],$9,$10}' | head
+
+```
+
+
+The code below might not work. That is fine. The VCF in the above chunk can be used for visualization in IGV.
+
+```{r, engine='bash'}
+/home/shared/bcftools-1.14/bcftools call \
+-v -c ~/data/alignment/output/F143_mpile.vcf.gz \
+> ~/data/alignment/output/F143_mpile_calls.vcf
+```
