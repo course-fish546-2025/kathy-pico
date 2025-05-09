@@ -1,0 +1,53 @@
+---
+title: "Diel Expression of Cyanobacteria Genes in the North Pacific Transition Zone"
+author: "Kathy Qi"
+format: 
+  revealjs:
+    theme: sky
+editor: visual
+---
+
+## Research Goals
+
+-   Quantify and visualize cyanobacteria genes related to photoinhibition at diel time scales
+-   Hypothesis: *Prochlorococcus* and *Synechococcus* downregulate genes related to photosynthesis and upregulated genes related to oxidative stress during peak irradiance hours.
+
+## Methods
+
+-   Started from trimmed, paired reads of poly-A non-selected Metatranscriptomic samples
+-   Used predicted genes from 771 genomes following a [published study](https://zenodo.org/records/12210994)
+-   Built an index files using Salmon:
+
+```{bash}
+# Build index if it doesn't exist
+if [ ! -d "$INDEX_DIR" ]; then
+    echo "Building Salmon index..."
+    # -k is kmer length, try 31 for now
+    salmon index -t "$FASTA" -i "$INDEX_DIR" -k 31 -p $THREADS --keepDuplicates 
+else
+    echo "Salmon index already exists at $INDEX_DIR"
+fi
+```
+
+## Methods
+
+-   Aligned transcripts to index file:
+
+```{bash}
+# run salmon 
+salmon quant -i "$INDEX_DIR" -l A \
+-1 "$read1" -2 "$read2" \
+-p $THREADS --validateMappings \
+-o "$OUTPUT_DIR"
+```
+
+## Preliminary Results
+
+-   Resulted in \~1-5% mapping rate for each sample
+
+## Plan for next 4 weeks
+
+-   Analyze the resulting mapped samples and gene counts
+-   Identify annotated genes related to photosynthesis and oxidative stres
+-   Check for statistical differences between samples at different times of day (dawn vs. noon vs. dusk)
+-   If there's time, check for differences in another [published diel study](https://www.nature.com/articles/s41559-021-01606-w) in a different location
