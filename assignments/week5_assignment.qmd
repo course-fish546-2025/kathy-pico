@@ -29,11 +29,12 @@ curl -O https://gannet.fish.washington.edu/seashell/bu-mox/data/Cvirg-genome/GCF
 ~/data/alignment/GCF_002022765.2_C_virginica-3.0_genomic.fa
 ```
 
-![tview](tview.png)
+![tview](week6_output/tview.png)
 
 ## IGV
 
 Download data
+
 ```{r, engine='bash'}
 cd ~/data/alignment
 curl -O https://owl.fish.washington.edu/nightingales/C_gigas/F143n08_R2_001.fastq.gz
@@ -48,6 +49,7 @@ curl -O https://gannet.fish.washington.edu/panopea/Cg-roslin/GCF_902806645.1_cgi
 ```
 
 Run alignment (HiSat2)
+
 ```{r, engine='bash'}
 # build index
 mkdir ~/data/alignment/output
@@ -67,6 +69,7 @@ mkdir ~/data/alignment/output
 ```
 
 Check alignment output
+
 ```{r, engine='bash'}
 tail -1 ~/data/alignment/output/F143_cgigas.sam
 ```
@@ -87,7 +90,6 @@ tail -1 ~/data/alignment/output/F143_cgigas.sam
 ~/data/alignment/output/F143_cgigas_sorted.bam
 ```
 
-
 ## Run `mpileup`
 
 ```{r, engine='bash'}
@@ -97,24 +99,24 @@ tail -1 ~/data/alignment/output/F143_cgigas.sam
 ```
 
 Check mpileup output
+
 ```{r, engine='bash'}
 tail ~/data/alignment/output/F143_mpileup_output.txt
 ```
 
-Create VCF file 
+Create VCF file
+
 ```{r, engine='bash'}
 cat ~/data/alignment/output/F143_mpileup_output.txt \
 | /home/shared/bcftools-1.14/bcftools call -mv -Oz \
 > ~/data/alignment/output/F143_mpile.vcf.gz
 ```
 
-
 ```{r, engine='bash'}
 zgrep "^##" -v ../output/F143_mpile.vcf.gz | \
 awk 'BEGIN{OFS="\t"} {split($8, a, ";"); print $1,$2,$4,$5,$6,a[1],$9,$10}' | head
 
 ```
-
 
 The code below might not work. That is fine. The VCF in the above chunk can be used for visualization in IGV.
 
@@ -123,3 +125,16 @@ The code below might not work. That is fine. The VCF in the above chunk can be u
 -v -c ~/data/alignment/output/F143_mpile.vcf.gz \
 > ~/data/alignment/output/F143_mpile_calls.vcf
 ```
+
+## IGV screenshots
+
+IGV Screenshot of _C. Gigas_ Genome assembly with mitochondrial DNA and GFF files
+![IGV](week6_output/IGV_all.png)
+
+IGV screenshot of zoomed in chromosome
+![IGV](week6_output/IGV_zoom.png)
+
+IGV Screenshot with Variants
+
+For some reason, there are no variants found.
+![IGV](week6_output/IGV_variants.png)
